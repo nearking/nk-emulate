@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色混合计算器</title>
+
+  <link rel="stylesheet" type="text/css" href="./layui/css/layui.css" />
+
+  <style>
+    .m-container {
+      width: 100%;
+      max-width: 800px;
+      min-width: 640px;
+      padding: 80px 20px;
+      margin: 0 auto;
+    }
+
+    .m-input-group {
+      position: relative;
+    }
+
+    .m-color-picker {
+      position: absolute;
+      top: 0;
+      right: -10px;
+    }
+
+    .m-color-view {
+      display: inline-block;
+      width: 240px;
+      height: 240px;
+    }
+
+    .m-color-text {
+      border-left: 1px solid #e1e1e1;
+      color: blueviolet;
+      line-height: 240px;
+      font-size: 32px;
+      text-align: center;
+    }
+
+    .layui-form-item {
+      margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div style="box-sizing: border-box;text-align: center;padding: 60px 0px 20px 0;">
+    <h1>颜色混合计算器</h1>
+  </div>
+
+  <div class="m-container layui-form-pane">
+    <form class="layui-form">
+      <div class="layui-form-item">
+        <label class="layui-form-label">底色</label>
+        <div class="layui-input-block m-input-group">
+          <input id="in-color-bg" type="text" placeholder="请选择颜色" autocomplete="off" class="layui-input">
+          <div id="picker-color-bg" class="m-color-picker"></div>
+        </div>
+      </div>
+
+      <div class="layui-row">
+        <div class="layui-col-md6">
+          <div class="layui-form-item">
+            <label class="layui-form-label">目标颜色</label>
+            <div class="layui-input-inline">
+              <input id="in-color-target" type="text" placeholder="请输入" autocomplete="off" class="layui-input">
+              <div id="picker-color-target" class="m-color-picker"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="layui-col-md6" style="text-align: right;">
+          <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">目标透明度</label>
+            <div class="layui-input-inline">
+              <input id="in-opacity" type="number" placeholder="请输入" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layui-form-item" style="text-align: center;">
+        <div id="btn-compute" class="layui-btn layui-btn-normal" style="width: 240px;">计&nbsp;&nbsp;算</div>
+      </div>
+      
+      <div class="layui-row" style="border: 1px solid #e1e1e1;padding: 20px 0;">
+        <div class="layui-col-md6" style="text-align: center;font-size: 0;">
+          <div id="m-color-view" class="m-color-view"></div>
+        </div>
+        <div class="layui-col-md6">
+          <div id="m-color-text" class="m-color-text"></div>
+        </div>
+      </div>
+
+      <div style="box-sizing: border-box;width: 100%;padding: 20px;background: #ffffff;display: none;">
+        <h2>颜色测试</h2>
+        <div style="width: 200px;height: 200px;background: rgba(0,0,0, 0.8);color: #333333;"></div>
+      </div>
+
+    </form>
+  </div>
+
+  <script src="./layui/layui.js"></script>
+  <script>
+    var hex2rbg = function (color) {
+      var hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+
+      color = color.replace('#', '')
+      var colors = color.split('');
+
+      return {
+        r: hex.indexOf(colors[0].toUpperCase()) * 16 + hex.indexOf(colors[1].toUpperCase()),
+        g: hex.indexOf(colors[2].toUpperCase()) * 16 + hex.indexOf(colors[3].toUpperCase()),
+        b: hex.indexOf(colors[4].toUpperCase()) * 16 + hex.indexOf(colors[5].toUpperCase())
+      }
+    }
+
+    var rgb2hex = function (rgb) {
+      return '#' + rgb.r.toString(16) + rgb.g.toString(16) + rgb.b.toString(16);
+    }
+
+    var mixColor = function (bg, target, opacity) {
+      bg = bg.replace('#', '');
+      var bgRGB = hex2rbg(bg);
+      var targetRGB = hex2rbg(target);
+      
+      var r = bgRGB.r - ((bgRGB.r - targetRGB.r) * (opacity) / 100);
+      r = Math.floor(r);
+      var g = bgRGB.g - ((bgRGB.g - targetRGB.g) * (opacity) / 100);
+      g = Math.floor(g);
+      var b = bgRGB.b - ((bgRGB.b - targetRGB.b) * (opacity) / 100);
+      b = Math.floor(b);
+      console.log('rgb --> ', r, g, b);
+      return rgb2hex({
+        r: r,
+        g: g,
+        b: b
+      })
+    }
+
+    layui.use(['form', 'colorpicker'], function(){
+      var form = layui.form;
+      var colorpicker = layui.colorpicker;
+      
+      var inColorBg = document.getElementById('in-color-bg');
+      inColorBg.value = '#FFFFFF';
+
+      var inColorTarget = document.getElementById('in-color-target');
+      inColorTarget.value = '#000000';
+
+      var inOpacity = document.getElementById('in-opacity');
+      inOpacity.value = 80;
+
+      var mColorView = document.getElementById('m-color-view');
+      mColorView.style.background = '#333333';
+
+      var mColorText = document.getElementById('m-color-text');
+      mColorText.innerHTML = '#333333';
+      
+      var btnCompute = document.getElementById('btn-compute');
+      btnCompute.onclick = function () {
+        var color = mixColor(inColorBg.value, inColorTarget.value, inOpacity.value);
+
+        mColorView.style.background = color;
+        mColorText.innerHTML = color;
+      }
+
+      colorpicker.render({
+        elem: '#picker-color-bg',  //绑定元素
+        format: 'hex',
+        color: inColorBg.value,
+        change: function (color) {
+          inColorBg.value = color;
+        }
+      });
+
+      colorpicker.render({
+        elem: '#picker-color-target',
+        format: 'hex',
+        color: inColorTarget.value,
+        change: function (color) {
+          inColorTarget.value = color;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
